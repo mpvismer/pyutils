@@ -70,18 +70,36 @@ def arange(start, stop=None, step=1.0):
     return [start + i * step for i in xrange(count)]
 
 
-
-def cls_fields(cls, show_private=True):
+def enum_fields(cls, show_private=False):
     '''
     Returns the non-hidden attributes of a class.
     '''
     #for member in dir(cls):
     if hasattr(cls,'_fields_'):
-        for member, t in cls._fields_:
-            yield (member, getattr(cls,member))
-    for member, val in inspect.getmembers(cls):
-        if not callable(val) and not member.startswith('_'):
-            yield (member, val)
+        for member, _type in cls._fields_:
+            if show_private or not member.startswith('_'):
+                yield (member, getattr(cls ,member))
+    elif issubclass(type(cls), dict):
+        for member, val in cls.iteritems():
+            if show_private or not member.startswith('_'):
+                yield (member, val)
+    else:
+        for member, val in inspect.getmembers(cls):
+            if not callable(val):
+                if show_private or not member.startswith('_'):
+                    yield (member, val)
+
+def cls_fields(*args, **kwargs):
+    warnings.warn('Obsolete use of cls_fields()')
+    return enum_fields(*args, **kwargs)
+
+
+def lookupKey(val, d, testfn=lambda x,y:bool(x==y)):
+    '''
+    Finds the keys in dictionay <d> which have value <val>.
+    '''
+    key = [key for key, value in d if testfn(value,stream)]
+
 
 def showstuff(data):
     '''
