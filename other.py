@@ -14,6 +14,7 @@ import math
 import inspect
 import types
 import ctypes
+import warnings
 
 import timeit
 import time
@@ -42,6 +43,7 @@ def is_variable(x):
         return True
     else:
         return False
+
 
 def prompt_yn(prompt):
     '''
@@ -94,11 +96,42 @@ def cls_fields(*args, **kwargs):
     return enum_fields(*args, **kwargs)
 
 
-def lookupKey(val, d, testfn=lambda x,y:bool(x==y)):
+def lookup_key(val, d, testfn=lambda x,y:bool(x==y)):
     '''
     Finds the keys in dictionay <d> which have value <val>.
     '''
-    key = [key for key, value in d if testfn(value,stream)]
+    key = [key for key, value in d if testfn(value, stream)]
+
+
+def array_flattern(data):
+    '''
+    Flatterns a multidemensional list of items into a single list.
+    '''
+    if hasattr(data[0], '__getitem__'):
+        l = []
+        for item in data:
+            l.extend(array_flattern(item))
+        return l
+    else:
+        return data
+
+
+def array_unflattern(data, dimensions):
+    '''
+    Unflatterns a multidemensional list of items into a single list.
+    '''
+    offset = 0;
+    if len(dimensions) > 1:
+        l = []
+        dimlen = 1
+        for dim in dimensions[1:]:
+            dimlen *= dim
+        for idx in range(0, dimensions[0]):
+            l.append(array_unflattern(data[offset:offset+dimlen], dimensions[1:]))
+            offset += dimlen
+        return l
+    else:
+        return data[:dimensions[0]]
 
 
 def showstuff(data):
@@ -225,8 +258,6 @@ def buffer_info(obj):
     return address.value, length.value
 
 
-
-
 def benchmark_it(func, repeat=3, number=1000):
     """
     Benchmark <func> by taking the shortest time of <repeat==3> test runs.
@@ -237,7 +268,6 @@ def benchmark_it(func, repeat=3, number=1000):
                                           repeat=repeat,
                                           number=number)) * 1000))
     return res
-
 
 
 class RedirectStdStreams(object):
